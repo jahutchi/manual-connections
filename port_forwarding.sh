@@ -151,6 +151,11 @@ while true; do
     echo -e Expires on'\t'${RED}$(date --date="$expires_at")${NC}
     echo -e "\n${GREEN}This script will need to remain active to use port forwarding, and will refresh every 15 minutes.${NC}\n"
 
+    #run custom script passing along the port number
+    if [ -x "${PIA_PF_POST_SCRIPT}" ]; then
+      ${PIA_PF_POST_SCRIPT} ${port}
+    fi
+
     # sleep 15 minutes
     sleep 900
 done
