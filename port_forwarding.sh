@@ -19,6 +19,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# notify systemd when the script ends (e.g. service is killed)
+trap "systemd-notify --status='VPN Connection Terminated'" EXIT
+
 # This function allows you to check if the required tools have been installed.
 function check_tool() {
   cmd=$1
@@ -126,6 +129,7 @@ Payload   ${GREEN}$payload${NC}
 
 Trying to bind the port... "
 
+SYSTEMD_NOTIFIED=0
 # Now we have all required data to create a request to bind the port.
 # We will repeat this request every 15 minutes, in order to keep the port
 # alive. The servers have no mechanism to track your activity, so they
@@ -156,6 +160,13 @@ while true; do
       ${PIA_PF_POST_SCRIPT} ${port}
     fi
 
+    if [ ${SYSTEMD_NOTIFIED} -eq 0 ]; then
+      systemd-notify --status="VPN Connected and Port Forwarding Established"
+      SYSTEMD_NOTIFIED=1
+    fi
+
     # sleep 15 minutes
     sleep 900
 done
+
+systemd-notify --status="VPN Connection Terminated"

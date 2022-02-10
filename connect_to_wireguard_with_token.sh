@@ -29,6 +29,7 @@ function check_tool() {
     exit 1
   fi
 }
+systemd-notify --status="Initializing"
 # Now we call the function to make sure we can use wg-quick, curl and jq.
 check_tool wg-quick
 check_tool curl
@@ -91,6 +92,7 @@ export pubKey
 # In case you didn't clone the entire repo, get the certificate from:
 # https://github.com/pia-foss/manual-connections/blob/master/ca.rsa.4096.crt
 # In case you want to troubleshoot the script, replace -s with -v.
+systemd-notify --status="Trying to connect to the PIA WireGuard API on $WG_SERVER_IP"
 echo Trying to connect to the PIA WireGuard API on $WG_SERVER_IP...
 wireguard_json="$(curl -s -G \
   --connect-to "$WG_HOSTNAME::$WG_SERVER_IP:" \
@@ -109,6 +111,7 @@ fi
 # Multi-hop is out of the scope of this repo, but you should be able to
 # get multi-hop running with both WireGuard and OpenVPN by playing with
 # these scripts. Feel free to fork the project and test it out.
+systemd-notify --status="Trying to disable a PIA WG connection in case it exists"
 echo
 echo Trying to disable a PIA WG connection in case it exists...
 wg-quick down pia && echo -e "${GREEN}\nPIA WG connection disabled!${NC}"
@@ -145,6 +148,7 @@ Endpoint = ${WG_SERVER_IP}:$(echo "$wireguard_json" | jq -r '.server_port')
 " > /etc/wireguard/pia.conf || exit 1
 echo -e ${GREEN}OK!${NC}
 
+systemd-notify --status="Attemptoing to create the wireguard interface"
 # Start the WireGuard interface.
 # If something failed, stop this script.
 # If you get DNS errors because you miss some packages,
@@ -172,8 +176,11 @@ if [ "$PIA_PF" != true ]; then
   echo
   echo The location used must be port forwarding enabled, or this will fail.
   echo Calling the ./get_region script with PIA_PF=true will provide a filtered list.
+  systemd-notify --ready --status="VPN Connected without Port Forwarding"
   exit 1
 fi
+
+systemd-notify --ready --status="VPN connected, attempting to enable port forwarding"
 
 echo -ne "This script got started with ${GREEN}PIA_PF=true${NC}.
 
