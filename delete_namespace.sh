@@ -25,6 +25,7 @@ iface_local="$NETNS_NAME-veth0"
 # deletes namespace, virtual interfaces associated with it, and iptables rules
 ip netns delete "$NETNS_NAME"
 ip link delete "$iface_local"
-iptables -t nat -D POSTROUTING -s "$NETNS_ADDR_NET" -o "$iface_default" -j MASQUERADE
-iptables -D FORWARD -i "$iface_default" -o "$iface_local" -j ACCEPT
-iptables -D FORWARD -o "$iface_default" -i "$iface_local" -j ACCEPT
+iptables -F
+iptables -F -t nat
+iptables -X
+iptables -X -t nat

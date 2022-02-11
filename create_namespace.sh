@@ -69,9 +69,10 @@ echo "Adding default route for $NETNS_NAME: ${addr_local%/*}"
 
 # Forward traffic
 echo 1 > /proc/sys/net/ipv4/ip_forward
-iptables -t nat -A POSTROUTING -s "$NETNS_ADDR_NET" -o "$iface_default" -j MASQUERADE
+
 iptables -A FORWARD -i "$iface_default" -o "$iface_local" -j ACCEPT
 iptables -A FORWARD -o "$iface_default" -i "$iface_local" -j ACCEPT
+iptables -A POSTROUTING -t nat -j MASQUERADE
 
 # Additional rule to allow connections from the designated port
 if [ "$NETNS_PORT_FWD" != "" ]; then
@@ -80,11 +81,3 @@ if [ "$NETNS_PORT_FWD" != "" ]; then
 fi
 
 echo Namespace and rules created succesfully.
-echo You can now start the VPN by running this command:
-echo
-echo ip netns exec $NETNS_NAME ./run_setup.sh
-echo
-echo Only programs started inside the namespace will use the VPN connection
-echo
-echo Example:
-echo ip netns exec $NETNS_NAME firefox
