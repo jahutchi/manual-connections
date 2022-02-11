@@ -138,6 +138,7 @@ echo "
 Address = $(echo "$wireguard_json" | jq -r '.peer_ip')
 PrivateKey = $privKey
 PostUp = iptables -I OUTPUT ! -o %i -m mark ! --mark "'$(wg show %i fwmark)'" -m addrtype ! --dst-type LOCAL -j REJECT
+PostUp = iptables -I OUTPUT -p tcp --sport "$NETNS_PORT_FWD" -j ACCEPT
 PreDown = iptables -D OUTPUT ! -o %i -m mark ! --mark "'$(wg show  %i fwmark)'" -m addrtype ! --dst-type LOCAL -j REJECT
 $dnsSettingForVPN
 [Peer]

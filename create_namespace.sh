@@ -39,9 +39,11 @@ iface_peer="$NETNS_NAME-veth1"
 # IP address of interfaces, can be any private IP address range in the same subnet
 addr_local=$(sed -r 's|[0-9]+/|1/|' <<< "$NETNS_ADDR_NET")
 addr_peer=$(sed -r 's|[0-9]+/|2/|' <<< "$NETNS_ADDR_NET")
+addr_peer_ip=$(sed -r 's/\/[0-9]+$//' <<< "$addr_peer")
 
 echo "Local Address: ${addr_local}"
 echo "Peer Address: ${addr_peer}"
+echo "Peer IP: ${addr_peer_ip}"
 
 # Set correct nameserver for DNS
 mkdir -p "/etc/netns/$NETNS_NAME"
@@ -70,6 +72,12 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 iptables -t nat -A POSTROUTING -s "$NETNS_ADDR_NET" -o "$iface_default" -j MASQUERADE
 iptables -A FORWARD -i "$iface_default" -o "$iface_local" -j ACCEPT
 iptables -A FORWARD -o "$iface_default" -i "$iface_local" -j ACCEPT
+
+# Additional rule to allow connections from the designated port
+if [ "$NETNS_PORT_FWD" != "" ]; then
+  echo Setting up port forward into the namespace for port: $NETNS_PORT_FWD
+  iptables -A PREROUTING -t nat -i $iface_default -p tcp --dport $NETNS_PORT_FWD -j DNAT --to-destination $addr_peer_ip
+fi
 
 echo Namespace and rules created succesfully.
 echo You can now start the VPN by running this command:
