@@ -67,6 +67,12 @@ ip -n "$NETNS_NAME" link set lo up
 ip -n "$NETNS_NAME" route add default via "${addr_local%/*}"
 echo "Adding default route for $NETNS_NAME: ${addr_local%/*}"
 
+# adds route to our physical LAN from inside namespace
+if [ "${LOCAL_SUBNET}" != "" ]; then
+  echo "adding a route back to our local subnet: ${LOCAL_SUBNET}"
+  ip -n "$NETNS_NAME" route add "${LOCAL_SUBNET}" via "${addr_local%/*}"
+fi
+
 # Forward traffic
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
@@ -79,5 +85,12 @@ if [ "$NETNS_PORT_FWD" != "" ]; then
   echo Setting up port forward into the namespace for port: $NETNS_PORT_FWD
   iptables -A PREROUTING -t nat -i $iface_default -p tcp --dport $NETNS_PORT_FWD -j DNAT --to-destination $addr_peer_ip
 fi
+
+# adds iptables rule to allow the namespace to talk back to machine on our physical LAN
+if [ "${LOCAL_SUBNET}" != "" ]; then
+  echo "adding an iptables rule to allow connections back to our physical subnet: ${LOCAL_SUBNET}"
+  ip netns exec "$NETNS_NAME" iptables -A OUTPUT -d ${LOCAL_SUBNET} -j ACCEPT
+fi
+
 
 echo Namespace and rules created succesfully.
