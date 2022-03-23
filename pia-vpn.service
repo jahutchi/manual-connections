@@ -1,0 +1,35 @@
+[Unit]
+Description=PIA VPN Service
+After=syslog.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+NotifyAccess=all
+Restart=always
+RestartSec=30
+Environment="LOGFILE=/var/logs/pia-vpn.log"
+Environment="VPN_PROTOCOL=wireguard"
+Environment="DISABLE_IPV6=yes"
+Environment="AUTOCONNECT=true"
+Environment="PIA_PF=true"
+Environment="PIA_PF_POST_SCRIPT=/home/jbloggs/port-forward.sh"
+Environment="PIA_DNS=true"
+Environment="PIA_USER=pxxxxxxx"
+Environment="PIA_PASS=mypasswd"
+Environment="LOCAL_SUBNET=192.168.0.0/24"
+Environment="NETNS_NAME=PIANS"
+Environment="NETNS_ADDR_NET=192.168.255.0/24"
+Environment="NETNS_PORT_FWD=8080"
+WorkingDirectory=/opt/pia-scripts
+
+# Start the VPN
+ExecStartPre=/usr/bin/bash -c "./create_namespace.sh 2>&1 | /usr/bin/tee -a ${LOGFILE}"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} ./run_setup.sh 2>&1 | /usr/bin/tee -a ${LOGFILE}"
+
+# Ensure the VPN was taken down and delete the namespace
+ExecStopPost=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} /usr/bin/wg-quick down pia 2>&1 | /usr/bin/tee -a ${LOGFILE}"
+ExecStopPost=/usr/bin/bash -c "./delete_namespace.sh 2>&1 | /usr/bin/tee -a ${LOGFILE}"
+
+[Install]
+WantedBy=multi-user.target
