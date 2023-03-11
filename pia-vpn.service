@@ -24,12 +24,12 @@ Environment="NETNS_PORT_FWD=8080"
 WorkingDirectory=/opt/pia-scripts
 
 # Start the VPN
-ExecStartPre=/usr/bin/bash -c "./create_namespace.sh 2>&1 | /usr/bin/tee -a ${LOGFILE}"
-ExecStart=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} ./run_setup.sh 2>&1 | /usr/bin/tee -a ${LOGFILE}"
+ExecStartPre=/usr/bin/bash -c "./create_namespace.sh 2>&1 >>${LOGFILE}"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} ./run_setup.sh 2>&1 >>${LOGFILE}"
 
 # Ensure the VPN was taken down and delete the namespace
-ExecStopPost=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} /usr/bin/wg-quick down pia 2>&1 | /usr/bin/tee -a ${LOGFILE}"
-ExecStopPost=/usr/bin/bash -c "./delete_namespace.sh 2>&1 | /usr/bin/tee -a ${LOGFILE}"
+ExecStopPost=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} /usr/bin/wg-quick down pia 2>&1 >>${LOGFILE}"
+ExecStopPost=/usr/bin/bash -c "./delete_namespace.sh 2>&1 >>${LOGFILE}"
 
 [Install]
 WantedBy=multi-user.target
