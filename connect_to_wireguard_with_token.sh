@@ -137,7 +137,19 @@ echo "
 [Interface]
 Address = $(echo "$wireguard_json" | jq -r '.peer_ip')
 PrivateKey = $privKey
-PostUp = iptables -A OUTPUT -p tcp --sport "$NETNS_PORT_FWD" -j ACCEPT
+" > /etc/wireguard/pia.conf || exit 1
+
+# Loop through each of the port numbers designated for port forwarding to local namespace
+for i in $(seq 1 100); do
+  eval THISPORT="\${NETNS_PORT_FWD${i}}"
+  if [ "${THISPORT}" != "" ]; then
+    echo "PostUp = iptables -A OUTPUT -p tcp --sport $THISPORT -j ACCEPT" >> /etc/wireguard/pia.conf || exit 1
+  else
+    break
+  fi
+done
+
+echo "
 PostUp = iptables -A OUTPUT ! -o %i -m mark ! --mark "'$(wg show %i fwmark)'" -m addrtype ! --dst-type LOCAL -j REJECT
 PreDown = iptables -D OUTPUT ! -o %i -m mark ! --mark "'$(wg show  %i fwmark)'" -m addrtype ! --dst-type LOCAL -j REJECT
 $dnsSettingForVPN
@@ -146,7 +158,7 @@ PersistentKeepalive = 25
 PublicKey = $(echo "$wireguard_json" | jq -r '.server_key')
 AllowedIPs = 0.0.0.0/0
 Endpoint = ${WG_SERVER_IP}:$(echo "$wireguard_json" | jq -r '.server_port')
-" > /etc/wireguard/pia.conf || exit 1
+" >> /etc/wireguard/pia.conf || exit 1
 echo -e ${GREEN}OK!${NC}
 
 systemd-notify --status="Attemptoing to create the wireguard interface"

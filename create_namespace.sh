@@ -80,11 +80,16 @@ iptables -A FORWARD -i "$iface_default" -o "$iface_local" -j ACCEPT
 iptables -A FORWARD -o "$iface_default" -i "$iface_local" -j ACCEPT
 iptables -A POSTROUTING -t nat -j MASQUERADE
 
-# Additional rule to allow connections from the designated port
-if [ "$NETNS_PORT_FWD" != "" ]; then
-  echo Setting up port forward into the namespace for port: $NETNS_PORT_FWD
-  iptables -A PREROUTING -t nat -i $iface_default -p tcp --dport $NETNS_PORT_FWD -j DNAT --to-destination $addr_peer_ip
-fi
+# Additional rules to allow connections (locally) from the designated port into the namespace
+for i in $(seq 1 100); do
+  eval THISPORT="\${NETNS_PORT_FWD${i}}"
+  if [ "${THISPORT}" != "" ]; then
+    echo Setting up local namespace port forwarding rule for port: $THISPORT
+    iptables -A PREROUTING -t nat -i $iface_default -p tcp --dport $THISPORT -j DNAT --to-destination $addr_peer_ip
+  else
+    break
+  fi
+done
 
 # adds iptables rule to allow the namespace to talk back to machine on our physical LAN
 if [ "${LOCAL_SUBNET}" != "" ]; then

@@ -20,7 +20,9 @@ Environment="PIA_PASS=mypasswd"
 Environment="LOCAL_SUBNET=192.168.0.0/24"
 Environment="NETNS_NAME=PIANS"
 Environment="NETNS_ADDR_NET=192.168.255.0/24"
-Environment="NETNS_PORT_FWD=8080"
+Environment="NETNS_PORT_FWD1=8080"
+Environment="NETNS_PORT_FWD2=8443"
+# NOTE: you can add as many NETNS_PORT_FWDX variables as you need
 WorkingDirectory=/opt/pia-scripts
 
 # Start the VPN
