@@ -59,7 +59,7 @@ if [ "$(whoami)" != "root" ]; then
   exit 1
 fi
 
-mkdir -p /opt/piavpn-manual
+mkdir -p /opt/pia-scripts
 
 if [[ ! $PIA_USER || ! $PIA_PASS ]]; then
   echo If you want this script to automatically get a token from the Meta
@@ -68,7 +68,7 @@ if [[ ! $PIA_USER || ! $PIA_PASS ]]; then
   exit 1
 fi
 
-tokenLocation=/opt/piavpn-manual/token
+tokenLocation=/opt/pia-scripts/token
 
 echo -n "Checking login credentials..."
 
@@ -88,8 +88,8 @@ echo
 token=$(echo "$generateTokenResponse" | jq -r '.token')
 tokenExpiration=$(timeout_timestamp)
 echo -e PIA_TOKEN=$token${NC}
-echo $token > /opt/piavpn-manual/token || exit 1
-echo $tokenExpiration >> /opt/piavpn-manual/token
+echo $token > /opt/pia-scripts/token || exit 1
+echo $tokenExpiration >> /opt/pia-scripts/token
 echo 
 echo This token will expire in 24 hours, on $tokenExpiration.
 echo

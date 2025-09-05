@@ -44,7 +44,7 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 # Erase previous authentication token if present
-rm -f /opt/piavpn-manual/token /opt/piavpn-manual/latencyList
+rm -f /opt/pia-scripts/token /opt/pia-scripts/latencyList
 
 # Retry login if no token is generated
 while :; do
@@ -100,7 +100,7 @@ while :; do
   # Confirm credentials and generate token
   ./get_token.sh
 
-  tokenLocation="/opt/piavpn-manual/token"
+  tokenLocation="/opt/pia-scripts/token"
   # If the script failed to generate an authentication token, the script will exit early.
   if [ ! -f "$tokenLocation" ]; then
     read -p "Do you want to try again ([N]o/[y]es): " tryAgain
@@ -110,9 +110,9 @@ while :; do
     PIA_USER=""
     PIA_PASS=""
   else
-    PIA_TOKEN=$( awk 'NR == 1' /opt/piavpn-manual/token )
+    PIA_TOKEN=$( awk 'NR == 1' /opt/pia-scripts/token )
     export PIA_TOKEN
-    rm -f /opt/piavpn-manual/token
+    rm -f /opt/pia-scripts/token
     break
   fi
 done
@@ -254,23 +254,23 @@ For example, you can try 0.2 for 200ms allowed latency.
       export VPN_PROTOCOL
       VPN_PROTOCOL=no ./get_region.sh
       
-      if [ -s /opt/piavpn-manual/latencyList ]; then
+      if [ -s /opt/pia-scripts/latencyList ]; then
         # Output the ordered list of servers that meet the latency specification $MAX_LATENCY
         echo -e "Orderd list of servers with latency less than ${GREEN}$MAX_LATENCY${NC} seconds:"
         i=0
         while read line; do
           i=$((i+1))
-          time=$( awk 'NR == '$i' {print $1}' /opt/piavpn-manual/latencyList )
-          id=$( awk 'NR == '$i' {print $2}' /opt/piavpn-manual/latencyList )
-          ip=$( awk 'NR == '$i' {print $3}' /opt/piavpn-manual/latencyList )
-          location1=$( awk 'NR == '$i' {print $4}' /opt/piavpn-manual/latencyList )
-          location2=$( awk 'NR == '$i' {print $5}' /opt/piavpn-manual/latencyList )
-          location3=$( awk 'NR == '$i' {print $6}' /opt/piavpn-manual/latencyList )
-          location4=$( awk 'NR == '$i' {print $7}' /opt/piavpn-manual/latencyList )
+          time=$( awk 'NR == '$i' {print $1}' /opt/pia-scripts/latencyList )
+          id=$( awk 'NR == '$i' {print $2}' /opt/pia-scripts/latencyList )
+          ip=$( awk 'NR == '$i' {print $3}' /opt/pia-scripts/latencyList )
+          location1=$( awk 'NR == '$i' {print $4}' /opt/pia-scripts/latencyList )
+          location2=$( awk 'NR == '$i' {print $5}' /opt/pia-scripts/latencyList )
+          location3=$( awk 'NR == '$i' {print $6}' /opt/pia-scripts/latencyList )
+          location4=$( awk 'NR == '$i' {print $7}' /opt/pia-scripts/latencyList )
           location=$location1" "$location2" "$location3" "$location4
           printf "%3s : %-8s %-15s %17s" $i $time $ip $id
           echo " - "$location
-        done < /opt/piavpn-manual/latencyList
+        done < /opt/pia-scripts/latencyList
         echo
       
         # Receive input to specify the server to connect to manually
@@ -285,7 +285,7 @@ For example, you can try 0.2 for 200ms allowed latency.
             elif [[ $serverSelection -gt $i ]]; then
               echo -e "\n${RED}You must enter a number between 1 and $i.${NC}\n"
             else
-              PREFERRED_REGION=$( awk 'NR == '$serverSelection' {print $2}' /opt/piavpn-manual/latencyList )
+              PREFERRED_REGION=$( awk 'NR == '$serverSelection' {print $2}' /opt/pia-scripts/latencyList )
               echo
               echo -e ${GREEN}PREFERRED_REGION=$PREFERRED_REGION${NC}
               break
