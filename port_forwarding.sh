@@ -153,15 +153,24 @@ while true; do
     echo -e Forwarded port'\t'${GREEN}$port${NC}
     echo -e Refreshed on'\t'${GREEN}$(date)${NC}
     echo -e Expires on'\t'${RED}$(date --date="$expires_at")${NC}
-    echo -e "\n${GREEN}This script will need to remain active to use port forwarding, and will refresh every 15 minutes.${NC}\n"
 
     #run custom script passing along the port number
     if [ -x "${PIA_PF_POST_SCRIPT}" ]; then
       ${PIA_PF_POST_SCRIPT} ${port}
+      PF_POST_SCRIPT_RETURN_CODE=$?
+      if [ ${PF_POST_SCRIPT_RETURN_CODE} -eq 0 ]; then
+        echo -e "\n${GREEN}This script will need to remain active to use port forwarding, and will refresh every 15 minutes.${NC}\n"
+      else
+        echo -e "\n${RED}Failure detected in ${PIA_PF_POST_SCRIPT}, will try again in 15 minutes.${NC}\n"
+      fi
     fi
 
     if [ ${SYSTEMD_NOTIFIED} -eq 0 ]; then
-      systemd-notify --status="VPN Connected and Port Forwarding Established"
+      if [ ${PF_POST_SCRIPT_RETURN_CODE} -eq 0 ]; then
+        systemd-notify --status="VPN Connected and Port Forwarding Established"
+      else
+        systemd-notify --status="VPN Connected but Port Forwarding Failed"
+      fi
       SYSTEMD_NOTIFIED=1
     fi
 
