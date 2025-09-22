@@ -215,3 +215,4 @@ PIA_TOKEN=$PIA_TOKEN \
   PF_GATEWAY=$WG_SERVER_IP \
   PF_HOSTNAME=$WG_HOSTNAME \
   ./port_forwarding.sh
+exit $?

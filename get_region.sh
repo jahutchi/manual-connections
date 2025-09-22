@@ -242,8 +242,9 @@ if [[ $VPN_PROTOCOL == wireguard ]]; then
   echo
   PIA_PF=$PIA_PF PIA_TOKEN=$PIA_TOKEN WG_SERVER_IP=$bestServer_WG_IP \
     WG_HOSTNAME=$bestServer_WG_hostname ./connect_to_wireguard_with_token.sh
+  ret=$?
   rm -f /opt/pia-scripts/latencyList
-  exit 0
+  exit $ret
 fi
 
 # Connect with OpenVPN and clear authentication token file and latencyList
@@ -268,6 +269,7 @@ if [[ $VPN_PROTOCOL == openvpn* ]]; then
     OVPN_HOSTNAME=$serverHostname \
     CONNECTION_SETTINGS=$VPN_PROTOCOL \
     ./connect_to_openvpn_with_token.sh
+  ret=$?
   rm -f /opt/pia-scripts/latencyList
-  exit 0
+  exit $ret
 fi

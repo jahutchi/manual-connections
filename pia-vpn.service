@@ -6,15 +6,18 @@ Wants=network-online.target
 [Service]
 Type=notify
 NotifyAccess=all
-Restart=always
-RestartSec=30
-Environment="LOGFILE=/var/logs/pia-vpn.log"
+Restart=on-failure
+RestartSec=5
+StartLimitBurst=100
+StartLimitInterval=3600
 Environment="VPN_PROTOCOL=wireguard"
 Environment="DISABLE_IPV6=yes"
 Environment="AUTOCONNECT=true"
+# Uncomment the following line AND set AUTOCONNECT to false above if you want to connect to a specific country
+#Environment="PREFERRED_REGION=uk_southampton"
 Environment="PIA_PF=true"
 Environment="PIA_PF_POST_SCRIPT=/home/jbloggs/port-forward.sh"
-Environment="PIA_DNS=true"
+Environment="PIA_DNS=false"
 Environment="PIA_USER=pxxxxxxx"
 Environment="PIA_PASS=mypasswd"
 Environment="LOCAL_SUBNET=192.168.0.0/24"
@@ -26,12 +29,12 @@ Environment="NETNS_PORT_FWD2=8443"
 WorkingDirectory=/opt/pia-scripts
 
 # Start the VPN
-ExecStartPre=/usr/bin/bash -c "./create_namespace.sh 2>&1 >>${LOGFILE}"
-ExecStart=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} ./run_setup.sh 2>&1 >>${LOGFILE}"
+ExecStartPre=/usr/bin/bash -c "./create_namespace.sh 2>&1"
+ExecStart=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} ./run_setup.sh 2>&1"
 
 # Ensure the VPN was taken down and delete the namespace
-ExecStopPost=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} /usr/bin/wg-quick down pia 2>&1 >>${LOGFILE}"
-ExecStopPost=/usr/bin/bash -c "./delete_namespace.sh 2>&1 >>${LOGFILE}"
+ExecStopPost=/usr/bin/bash -c "/usr/bin/ip netns exec ${NETNS_NAME} /usr/bin/wg-quick down pia 2>&1"
+ExecStopPost=/usr/bin/bash -c "./delete_namespace.sh 2>&1"
 
 [Install]
 WantedBy=multi-user.target

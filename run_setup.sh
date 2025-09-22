@@ -392,3 +392,4 @@ CONNECTION_READY="true"
 export CONNECTION_READY
 
 ./get_region.sh
+exit $?
