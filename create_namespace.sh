@@ -24,8 +24,12 @@ fi
 
 # Check if namespace already exists
 if ip netns list | grep -q "$NETNS_NAME"; then
-  echo Namespace already exits, aborting.
-  exit 1
+  echo Namespace already exits, removing.
+  ./delete_namespace.sh
+  if ip netns list | grep -q "$NETNS_NAME"; then
+    echo Namespace still already exits, exiting.
+    exit 1
+  fi
 fi
 
 # name of the default interface to connect to the Internet
